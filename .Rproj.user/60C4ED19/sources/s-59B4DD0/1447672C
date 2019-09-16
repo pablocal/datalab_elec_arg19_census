@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1568661926772.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3617556650",
+    "id" : "1447672C",
+    "lastKnownWriteTime" : 1568663289,
+    "last_content_update" : 1568663289847,
+    "path" : "~/git_repos/tidy_data.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "473,4",
+        "scrollLine" : "472"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
