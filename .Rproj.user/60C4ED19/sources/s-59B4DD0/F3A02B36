@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1568665142289.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1217501960",
+    "id" : "F3A02B36",
+    "lastKnownWriteTime" : 1568665208,
+    "last_content_update" : 1568665208135,
+    "path" : "~/git_repos/argentina_2019/README.md",
+    "project_path" : "README.md",
+    "properties" : {
+        "cursorPosition" : "11,18",
+        "scrollLine" : "7"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "markdown"
+}
