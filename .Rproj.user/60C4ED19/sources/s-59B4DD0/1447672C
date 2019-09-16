@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3617556650",
+    "hash" : "0",
     "id" : "1447672C",
     "lastKnownWriteTime" : 1568663289,
     "last_content_update" : 1568663289847,
     "path" : "~/git_repos/tidy_data.R",
     "project_path" : null,
     "properties" : {
-        "cursorPosition" : "473,4",
-        "scrollLine" : "472"
+        "cursorPosition" : "339,0",
+        "scrollLine" : "317"
     },
     "read_only" : false,
     "read_only_alternatives" : [
