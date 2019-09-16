@@ -2,12 +2,18 @@
 
 This project aims to create a dataset combining census statistics and electoral results. These are the data sources combined:
 
-- 2010 census statistics
-- 2019 PASO presidential elections
-- 2015 PASO presidential elections
-- 2015 presidential elections
+- 2010 **census** statistics
+- 2019 **PASO** presidential elections
+- 2015 **PASO** presidential elections
+- 2015 **presidential** elections
 
 Data is aggregated at "circuito", the lowest level at which electoral results are available. In Argentina, census and electoral geography are independent so I had to create a lookup file for correspondences between census tracks and electoral "circuitos". I did this by computing the area intersected between both set of boundaries.
 
-Details to follow.
+## The dataset
+
+### Variables
+
+## How it was built
+
+
  

@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1217501960",
+    "hash" : "0",
     "id" : "F3A02B36",
-    "lastKnownWriteTime" : 1568665208,
-    "last_content_update" : 1568665208135,
+    "lastKnownWriteTime" : 1568666264,
+    "last_content_update" : 1568666264558,
     "path" : "~/git_repos/argentina_2019/README.md",
     "project_path" : "README.md",
     "properties" : {
-        "cursorPosition" : "11,18",
-        "scrollLine" : "7"
+        "cursorPosition" : "14,0",
+        "scrollLine" : "10"
     },
     "read_only" : false,
     "read_only_alternatives" : [
