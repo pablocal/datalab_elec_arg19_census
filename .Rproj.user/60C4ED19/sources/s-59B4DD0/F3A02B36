@@ -7,13 +7,13 @@
     "folds" : "",
     "hash" : "0",
     "id" : "F3A02B36",
-    "lastKnownWriteTime" : 1568666264,
-    "last_content_update" : 1568666264558,
-    "path" : "~/git_repos/argentina_2019/README.md",
-    "project_path" : "README.md",
+    "lastKnownWriteTime" : 1568666919,
+    "last_content_update" : 1568666919495,
+    "path" : "~/git_repos/argentina_2019/README.Rmd",
+    "project_path" : "README.Rmd",
     "properties" : {
-        "cursorPosition" : "14,0",
-        "scrollLine" : "10"
+        "cursorPosition" : "3,0",
+        "scrollLine" : "0"
     },
     "read_only" : false,
     "read_only_alternatives" : [
@@ -21,5 +21,5 @@
     "relative_order" : 2,
     "source_on_save" : false,
     "source_window" : "",
-    "type" : "markdown"
+    "type" : "r_markdown"
 }
