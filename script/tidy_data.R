@@ -472,8 +472,15 @@ varnames <- varsel %>%
 ## select variables and rename
 joint_circuito <- joint_circuito %>% 
   select(one_of(vars_keep))%>% 
-  rename_all(~ varnames)
+  rename_all(~ varnames) %>% 
+  mutate(province = case_when(
+    str_sub(id_circuito_elec, 1, 2) == "01" ~ "CABA",
+    str_sub(id_circuito_elec, 1, 2) == "02" ~ "Buenos Aires"
+  )) %>% 
+  select(id_circuito_elec, province, everything())
 
 ## save final file
 write_rds(joint_circuito, "arg_elec_censo_wide.RDS")
 write_csv2(joint_circuito, "arg_elec_censo_wide.csv")
+openxlsx::write.xlsx(joint_circuito, "arg_elec_censo_wide.xlsx")
+

@@ -1,5 +1,6 @@
 ---
 output: github_document
+always_allow_html: yes
 ---
 
 
@@ -14,14 +15,15 @@ library(tidyverse)
 
 # Dataset: 2019 Argentine General Election
 
-The resulting dataset is availabel in `csv` (for excel) and `RDS` (for R) formats:
+The resulting dataset is availabel in `RDS` (for R), `xlsx` (for excel) and `csv` formats:
 
-- `arg_elec_censo_wide.csv`
 - `arg_elec_censo_wide.RDS`
+- `arg_elec_censo_wide.csv`
+- `arg_elec_censo_wide.xlsx`
 
-This project aims to create a dataset combining census statistics and electoral results. These are the data sources combined:
+This project aims to create a dataset combining census statistics and electoral results for the **Province of Buenos Aires** and the **City of BA**. These are the data sources combined:
 
-- 2010 **census** statistics
+- 2010 **census** statistics 
 - 2019 **PASO** presidential election
 - 2015 **PASO** presidential election
 - 2015 **presidential** election
@@ -30,66 +32,27 @@ Data is aggregated at "circuito", the lowest level at which electoral results ar
 
 ## The dataset
 
-```{r, echo=FALSE}
-d <- read_rds("arg_elec_censo_wide.RDS")
-head(d, 5)
-```
-
-
-### Variables
+The dataset contains relative estimates of some relevant census variables and electoral results. These are the variables (names are in Spanish):
 
 ```{r, echo=FALSE}
-tibble(Variable = c("vi_cal_cons_", "vi_cal_servbas_", "vi_cal_mat_", 
-                                 "vi_tipo_", "vi_nho_", "vi_urban_", 
-                                 "vi_tipo_part_", "vi_tipo_ocupa_", "ho_nbi_", 
-                                 "ho_suelo_", "ho_techo_", "ho_rev_int_", 
-                                 "ho_agua_", "ho_agua_beber_", "ho_aseo_", 
-                                 "ho_cadena_", "ho_desague_", "ho_combus_", 
-                                 "ho_refri_", "ho_compu_", 
-                                 "ho_celu_", "ho_fijo_", "ho_hacinam_", 
-                                 "ho_nhogar_", "ho_prop_", "ho_npers_", 
-                                 "per_siteco_", "per_edad_gru_", 
-                                 "per_edad_quin_", "per_rela_jefe_", 
-                                 "per_sexo_", "per_inmig_", 
-                                 "per_leer_", "per_escuela_", "per_educa_", 
-                                 "per_educa_completo_", "per_compu_"),
-                                Summary = c("Calidad constructiva de la vivienda",
-                                "Calidad de Conexiones a Servicios Básicos",
-                                "Calidad de los materiales",
-                                "Tipo de vivienda agrupado",
-                                "Cantidad de Hogares en la Vivienda",
-                                "Area Urbano - Rural",
-                                "Tipo de vivienda particular",
-                                "Condición de ocupación",
-                                "Al menos un indicador NBI",
-                                "Material predominante de los pisos",
-                                "Material predominante de la cubierta exterior del techo",
-                                "Revestimiento interior o cielorraso del techo",
-                                "Tenencia de agua",
-                                "Procedencia del agua para beber y cocinar",
-                                "Tiene baño / letrina",
-                                "Tiene botón, cadena, mochila para limpieza del inodoro",
-                                "Desagüe del inodoro",
-                                "Baño / letrina de uso exclusivo",
-                                "Combustible usado principalmente para cocinar",
-                                "Heladera",
-                                "Computadora",
-                                "Teléfono celular",
-                                "Teléfono de línea",
-                                "Hacinamiento",
-                                "Régimen de tenencia",
-                                "Total de Personas en el Hogar",
-                                "Condición de actividad",
-                                "Edad en grandes grupos",
-                                "Edades quinquenales",
-                                "Relación o parentesco con el jefe(a) del hogar",
-                                "Sexo",
-                                "En que país nació",
-                                "Sabe leer y escribir",
-                                "Condición de asistencia escolar",
-                                "Nivel educativo que cursa o cursó",
-                                "Completó el nivel",
-                                "Utiliza computadora")) %>% 
+tibble(Variable = c("id_circuito_elec",
+                           "province",
+                           "vi_*",
+                           "ho_*",
+                           "per_*",
+                           "paso19_*",
+                           "paso15_*",
+                           "pres15_*"
+                           ),
+        Label = c("ID electoral circuit",
+                    "Argentine province",
+                    "Dwelling unit level variables",
+                    "Household level variables",
+                    "Person level variables",
+                    "2019 PASO election variables",
+                    "2015 PASO election variables",
+                    "2015 Presidential election variables")
+       ) %>% 
   kableExtra::kable()
 
 ```
