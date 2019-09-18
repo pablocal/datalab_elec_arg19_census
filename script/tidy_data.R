@@ -1,5 +1,5 @@
 # Metadata ----------------------------------------------------------------
-# Title: Argentina PASO19 elections with census (BA and CABA)
+# Title: Argentine PASO19 elections with census (BA and CABA)
 # Purpose: Combine census and electoral data at "circuito" for BA & CABA
 # Author(s): @pablocal
 # Date Created: 2019-09-11
