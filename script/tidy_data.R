@@ -51,7 +51,7 @@ paso19_reg_id <- paso19_reg_id %>%
   rename(name = nombre_region)
 
 ## Select party names
-paso19_cand_id <-  paso19_cand_id %>% 
+paso19_cand_id <- paso19_cand_id %>% 
   filter(codigo_categoria == "000100000000000") %>% 
   group_by(codigo_agrupacion) %>%
   summarise(nombre_agrupacion = first(nombre_agrupacion))
@@ -76,21 +76,33 @@ paso19_mesa <- paso19_cand_pres %>%
          codigo_mesa, votos_blanco, votos_validos, codigo_agrupacion, nombre_agrupacion, votos_agrupacion)
 
 ## summarise file at circuito level
+
+# blank and valid
+paso19_circuito_long_totals <- paso19_mesa %>%
+  group_by(codigo_circuito, codigo_mesa) %>% 
+  summarise(votos_blanco = first(votos_blanco), 
+            votos_validos = first(votos_validos)) %>% 
+  ungroup() %>% 
+  group_by(codigo_circuito) %>% 
+  summarise(votos_blanco = sum(votos_blanco),
+            votos_validos = sum(votos_validos)
+            )
+
+# filter for CABA and BA and match with blank and valid
 paso19_circuito_long <- paso19_mesa %>%
+  select(-votos_blanco, -votos_validos) %>% 
   filter(codigo_distrito %in% c("01", "02")) %>% 
   mutate(partido = recode(nombre_agrupacion, "JUNTOS POR EL CAMBIO" = "Juntos por el Cambio",
                           "FRENTE DE TODOS" = "Frente de Todos",
                           .default = "Otros")) %>% 
-  group_by(codigo_circuito, partido, nombre_agrupacion) %>% 
-  summarise(votos_blanco = sum(votos_blanco), votos_validos = sum(votos_validos), 
-              votos_candidatura = sum(votos_agrupacion)) %>% 
   group_by(codigo_circuito, partido) %>% 
-  summarise(votos_blanco = first(votos_blanco), votos_validos = first(votos_validos), 
-            votos_candidatura = sum(votos_candidatura)) %>%
+  summarise(votos_candidatura = sum(votos_agrupacion)) %>%
+  left_join(paso19_circuito_long_totals, by = "codigo_circuito") %>% 
   rename(id_circuito_elec = codigo_circuito) %>% 
   mutate(year = 2019) %>% 
-  select(year, id_circuito_elec, everything())
+  select(year, id_circuito_elec, votos_blanco, votos_validos, partido, votos_candidatura)
 
+          
 ## to wide format
 paso19_circuito_wide <- spread(paso19_circuito_long, key = partido, value = votos_candidatura) %>% 
   rename(paso19_cand_FdT = `Frente de Todos`,
@@ -483,4 +495,5 @@ joint_circuito <- joint_circuito %>%
 write_rds(joint_circuito, "arg_elec_censo_wide.RDS")
 write_csv2(joint_circuito, "arg_elec_censo_wide.csv")
 openxlsx::write.xlsx(joint_circuito, "arg_elec_censo_wide.xlsx")
+
 

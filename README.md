@@ -186,3 +186,6 @@ pres15\_\*
 </table>
 
 ## How it was built
+
+A more comprehensive explanation is posted
+[here](https://pablocabrera.me/post/2019_09_27/election-results-census-charact-argentina-2019/)
