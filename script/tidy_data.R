@@ -22,7 +22,99 @@ library(tidyverse)
 
 # -------------------------------------------------------------------------
 
-# A) Prepare electoral data: PASO19, PASO15, PRES15
+# A) Prepare electoral data: PRES19, PASO19, PASO15, PRES15
+
+# A.0. Create a PRES 2019 file -----------------------------------------
+
+## Load the files (source: https://www.resultados2019.gob.ar/)
+pres19_cand_id <- read_delim("data/pres2019/descripcion_postulaciones.dsv", delim = "|") %>% 
+  rename_all(str_to_lower) # cadidate labels
+pres19_reg_id <- read_delim("data/pres2019/descripcion_regiones.dsv", delim = "|") %>% 
+  rename_all(str_to_lower) # region labels
+pres19_totals <- read_delim("data/pres2019/mesas_totales.dsv", delim = "|") %>% 
+  rename_all(str_to_lower) # electoral totals
+pres19_cand <- read_delim("data/pres2019/mesas_agrp_politicas.dsv", delim = "|") %>% 
+  rename_all(str_to_lower) # electoral votes to candidates
+
+## Get blank votes to compute valid and percentages
+pres19_totals_pres_blank <- pres19_totals %>% 
+  filter(codigo_categoria == "000100000000000",
+         contador == "Voto blanco") %>% 
+  select(codigo_mesa, valor) %>% 
+  rename(votos_blanco = valor)
+
+## Prepare regional identifiers
+pres19_reg_id <- pres19_reg_id %>% 
+  mutate(codigo_distrito = codigo_region,
+         codigo_seccion = codigo_region,
+         codigo_circuito = codigo_region) %>% 
+  rename(name = nombre_region)
+
+## Select party names
+pres19_cand_id <- pres19_cand_id %>% 
+  filter(codigo_categoria == "000100000000000") %>% 
+  group_by(codigo_agrupacion) %>%
+  summarise(nombre_agrupacion = first(nombre_agrupacion))
+
+## Votes to candidature to compute total valids
+pres19_cand_pres <- pres19_cand %>% 
+  filter(codigo_categoria == "000100000000000") %>% 
+  group_by(codigo_mesa) %>% 
+  mutate(votos_candidatura = sum(votos_agrupacion)) %>%
+  ungroup() 
+
+## join files 
+pres19_mesa <- pres19_cand_pres %>% 
+  left_join(pres19_totals_pres_blank, by = "codigo_mesa") %>% 
+  mutate(votos_validos = votos_candidatura + votos_blanco) %>%
+  left_join(select(pres19_reg_id, codigo_distrito, name), by = "codigo_distrito") %>% 
+  rename(name_distrito = name) %>% 
+  left_join(select(pres19_reg_id, codigo_seccion, name), by = "codigo_seccion") %>% 
+  rename(name_seccion = name) %>%
+  left_join(pres19_cand_id, by = "codigo_agrupacion") %>% 
+  select(codigo_distrito, name_distrito, codigo_seccion, name_seccion, codigo_circuito, 
+         codigo_mesa, votos_blanco, votos_validos, codigo_agrupacion, nombre_agrupacion, votos_agrupacion)
+
+## summarise file at circuito level
+
+# blank and valid
+pres19_circuito_long_totals <- pres19_mesa %>%
+  group_by(codigo_circuito, codigo_mesa) %>% 
+  summarise(votos_blanco = first(votos_blanco), 
+            votos_validos = first(votos_validos)) %>% 
+  ungroup() %>% 
+  group_by(codigo_circuito) %>% 
+  summarise(votos_blanco = sum(votos_blanco),
+            votos_validos = sum(votos_validos)
+  )
+
+# filter for CABA and BA and match with blank and valid
+pres19_circuito_long <- pres19_mesa %>%
+  select(-votos_blanco, -votos_validos) %>% 
+  filter(codigo_distrito %in% c("01", "02")) %>% 
+  mutate(partido = recode(nombre_agrupacion, "JUNTOS POR EL CAMBIO" = "Juntos por el Cambio",
+                          "FRENTE DE TODOS" = "Frente de Todos",
+                          .default = "Otros")) %>% 
+  group_by(codigo_circuito, partido) %>% 
+  summarise(votos_candidatura = sum(votos_agrupacion)) %>%
+  left_join(pres19_circuito_long_totals, by = "codigo_circuito") %>% 
+  rename(id_circuito_elec = codigo_circuito) %>% 
+  mutate(year = 2019) %>% 
+  select(year, id_circuito_elec, votos_blanco, votos_validos, partido, votos_candidatura)
+
+
+## to wide format
+pres19_circuito_wide <- spread(pres19_circuito_long, key = partido, value = votos_candidatura) %>% 
+  rename(pres19_cand_FdT = `Frente de Todos`,
+         pres19_cand_JxC = `Juntos por el Cambio`,
+         pres19_cand_Otros = Otros,
+         pres19_blanco = votos_blanco,  
+         pres19_validos = votos_validos) %>% 
+  select(-year)
+
+## save file  
+write_rds(pres19_circuito_long, "data/Pres_2019_circuito_long.RDS")
+write_rds(pres19_circuito_wide, "data/Pres_2019_circuito_wide.RDS")
 
 # A.1. Create a PASO 2019 file -----------------------------------------
 
@@ -439,6 +531,7 @@ lkup <- read_rds("data/all_lookup.RDS") %>%
 elec_paso19 <- read_rds("data/PASO_2019_circuito_wide.RDS")
 elec_paso15 <- read_rds("data/PASO_2015_circuito_wide.RDS")
 elec_pres15 <- read_rds("data/Pres_2015_circuito_wide.RDS")
+elec_pres19 <- read_rds("data/Pres_2019_circuito_wide.RDS")
 
 ## join files
 joint <- reduce(list(lkup, censo, totales), left_join, by = "id_radio")
@@ -459,14 +552,14 @@ joint_circuito <- joint %>%
   select(-ends_with("TOTAL"))
 
 ## join circuito
-joint_circuito <- reduce(list(joint_circuito, elec_paso19, elec_pres15, elec_paso15), 
+joint_circuito <- reduce(list(joint_circuito, elec_paso19, elec_pres19, elec_paso15, elec_pres15), 
                          left_join, by = "id_circuito_elec")
   
 joint_circuito <- joint_circuito %>% 
   mutate_at(vars(starts_with("paso15_cand")), list(~ ./paso15_validos*100)) %>% 
   mutate_at(vars(starts_with("pres15_cand")), list(~ ./pres15_validos*100)) %>% 
-  mutate_at(vars(starts_with("paso19_cand")), list(~ ./paso19_validos*100)) 
-
+  mutate_at(vars(starts_with("paso19_cand")), list(~ ./paso19_validos*100)) %>% 
+  mutate_at(vars(starts_with("pres19_cand")), list(~ ./pres19_validos*100))
 # D.2. Clean joint file ---------------------------------------------------
 
 ## get file with the census variables selected
@@ -489,7 +582,8 @@ joint_circuito <- joint_circuito %>%
     str_sub(id_circuito_elec, 1, 2) == "01" ~ "CABA",
     str_sub(id_circuito_elec, 1, 2) == "02" ~ "Buenos Aires"
   )) %>% 
-  select(id_circuito_elec, province, everything())
+  select(id_circuito_elec, province, everything()) %>% 
+  drop_na()
 
 ## save final file
 write_rds(joint_circuito, "arg_elec_censo_wide.RDS")

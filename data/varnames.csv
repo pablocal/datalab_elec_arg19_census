@@ -165,6 +165,11 @@ paso19_validos;1;paso19_validos
 paso19_cand_FdT;1;paso19_cand_FdT
 paso19_cand_JxC;1;paso19_cand_JxC
 paso19_cand_Otros;1;paso19_cand_Otros
+pres19_blanco;1;pres19_blanco
+pres19_validos;1;pres19_validos
+pres19_cand_FdT;1;pres19_cand_FdT
+pres19_cand_JxC;1;pres19_cand_JxC
+pres19_cand_Otros;1;pres19_cand_Otros
 pres15_blanco;1;pres15_blanco
 pres15_validos;1;pres15_validos
 pres15_cand_Cam;1;pres15_cand_Cam
