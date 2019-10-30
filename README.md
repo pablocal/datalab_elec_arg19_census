@@ -1,7 +1,7 @@
 
 # Dataset: 2019 Argentine General Election
 
-The resulting dataset is availabel in `RDS` (for R), `xlsx` (for excel)
+The resulting dataset is available in `RDS` (for R), `xlsx` (for excel)
 and `csv` formats:
 
   - `arg_elec_censo_wide.RDS`
@@ -188,4 +188,4 @@ pres15\_\*
 ## How it was built
 
 A more comprehensive explanation is posted
-[here](https://pablocabrera.me/post/2019_09_27/election-results-census-charact-argentina-2019/)
+[here](https://pablocabrera.me/post/2019_09_27/election-results-census-charact-argentina-2019/).
