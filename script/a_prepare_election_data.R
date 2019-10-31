@@ -1,5 +1,5 @@
 # Metadata ----------------------------------------------------------------
-# Title: Argentine PASO19 elections with census (BA and CABA)
+# Title: A) Prepare election data
 # Purpose: Combine census and electoral data at "circuito" for BA & CABA
 # Author(s): @pablocal
 # Date Created: 2019-09-11
@@ -11,16 +11,10 @@
 # collected by @jazzido
 #
 # A) Electoral data
-# B) Census data
-# C) Geographical lookup
-# D) Join files and clean
 #
 # Options and packages ----------------------------------------------------
-rm(list = ls())
 
 library(tidyverse)
-
-# -------------------------------------------------------------------------
 
 # A) Prepare electoral data: PRES19, PASO19, PASO15, PRES15
 
@@ -178,7 +172,7 @@ paso19_circuito_long_totals <- paso19_mesa %>%
   group_by(codigo_circuito) %>% 
   summarise(votos_blanco = sum(votos_blanco),
             votos_validos = sum(votos_validos)
-            )
+  )
 
 # filter for CABA and BA and match with blank and valid
 paso19_circuito_long <- paso19_mesa %>%
@@ -194,7 +188,7 @@ paso19_circuito_long <- paso19_mesa %>%
   mutate(year = 2019) %>% 
   select(year, id_circuito_elec, votos_blanco, votos_validos, partido, votos_candidatura)
 
-          
+
 ## to wide format
 paso19_circuito_wide <- spread(paso19_circuito_long, key = partido, value = votos_candidatura) %>% 
   rename(paso19_cand_FdT = `Frente de Todos`,
@@ -247,10 +241,10 @@ paso15_votes <- paso15_cand %>%
   group_by(`codigo provincia`, `codigo departamento`, `codigo circuito`, denominacion) %>%
   summarise(candidatura = sum(candidatura)) %>% 
   mutate(denominacion = recode(denominacion,
-                          "ALIANZA CAMBIEMOS" = "Cambiemos",
-                          "ALIANZA FRENTE PARA LA VICTORIA" = "Frente Para la Victoria" ,
-                          "ALIANZA UNIDOS POR UNA NUEVA ALTERNATIVA (UNA)" =  "UNA",	
-                          .default = "Otros")) %>% 
+                               "ALIANZA CAMBIEMOS" = "Cambiemos",
+                               "ALIANZA FRENTE PARA LA VICTORIA" = "Frente Para la Victoria" ,
+                               "ALIANZA UNIDOS POR UNA NUEVA ALTERNATIVA (UNA)" =  "UNA",	
+                               .default = "Otros")) %>% 
   group_by(`codigo provincia`, `codigo departamento`, `codigo circuito`, denominacion) %>%
   summarise(candidatura = sum(candidatura)) %>% 
   rename(partido = denominacion,
@@ -367,227 +361,3 @@ pres15_circuito_wide <- spread(pres15_circuito_long, key = partido, value = voto
 ## save files
 write_rds(pres15_circuito_long, "data/Pres_2015_circuito_long.RDS")
 write_rds(pres15_circuito_wide, "data/Pres_2015_circuito_wide.RDS")
-
-# -------------------------------------------------------------------------
-
-# B) Prepare 2010 census information
-
-# B.1 census variables ------------------------------------------------------
-
-rm(list= ls())
-library(rvest)
-source("source/source.R")
-
-## scrape the urls (source: http://dump.jazzido.com/CNPHV2010-RADIO/)
-url <- "http://dump.jazzido.com/CNPHV2010-RADIO/"
-url <- read_html(url)
-url_list <- url %>% 
-  html_nodes("a") %>% 
-  html_attr("href")
-
-url_list <- url_list[str_ends(url_list, ".csv")] 
-url_list <- url_list[!str_detect(url_list, "HOGAR.NHOG|VIVIENDA.V00|HOGAR.H15|PERSONA.P03")]
-
-# Prepare a list of varnames
-prefix_list <- tibble(url_end = url_list,
-                      prefix = c("vi_cal_cons_", "vi_cal_servbas_", "vi_cal_mat_", 
-                                 "vi_tipo_", "vi_nho_", "vi_urban_", 
-                                 "vi_tipo_part_", "vi_tipo_ocupa_", "ho_nbi_", 
-                                 "ho_suelo_", "ho_techo_", "ho_rev_int_", 
-                                 "ho_agua_", "ho_agua_beber_", "ho_aseo_", 
-                                 "ho_cadena_", "ho_desague_", "ho_combus_", 
-                                 "ho_refri_", "ho_compu_", 
-                                 "ho_celu_", "ho_fijo_", "ho_hacinam_", 
-                                 "ho_nhogar_", "ho_prop_", "ho_npers_", 
-                                 "per_siteco_", "per_edad_gru_", 
-                                 "per_edad_quin_", "per_rela_jefe_", 
-                                 "per_sexo_", "per_inmig_", 
-                                 "per_leer_", "per_escuela_", "per_educa_", 
-                                 "per_educa_completo_", "per_compu_"),
-                      descr = c("Calidad constructiva de la vivienda",
-                                "Calidad de Conexiones a Servicios Básicos",
-                                "Calidad de los materiales",
-                                "Tipo de vivienda agrupado",
-                                "Cantidad de Hogares en la Vivienda",
-                                "Area Urbano - Rural",
-                                "Tipo de vivienda particular",
-                                "Condición de ocupación",
-                                "Al menos un indicador NBI",
-                                "Material predominante de los pisos",
-                                "Material predominante de la cubierta exterior del techo",
-                                "Revestimiento interior o cielorraso del techo",
-                                "Tenencia de agua",
-                                "Procedencia del agua para beber y cocinar",
-                                "Tiene baño / letrina",
-                                "Tiene botón, cadena, mochila para limpieza del inodoro",
-                                "Desagüe del inodoro",
-                                "Baño / letrina de uso exclusivo",
-                                "Combustible usado principalmente para cocinar",
-                                "Heladera",
-                                "Computadora",
-                                "Teléfono celular",
-                                "Teléfono de línea",
-                                "Hacinamiento",
-                                "Régimen de tenencia",
-                                "Total de Personas en el Hogar",
-                                "Condición de actividad",
-                                "Edad en grandes grupos",
-                                "Edades quinquenales",
-                                "Relación o parentesco con el jefe(a) del hogar",
-                                "Sexo",
-                                "En que país nació",
-                                "Sabe leer y escribir",
-                                "Condición de asistencia escolar",
-                                "Nivel educativo que cursa o cursó",
-                                "Completó el nivel",
-                                "Utiliza computadora"))
-
-
-## collect data and save
-data_censo_radio <-  map2(prefix_list$url_end, prefix_list$prefix, ~ read_arg_census(end_url = .x, prefix = .y))
-
-data_censo_joint <- data_censo_radio %>% 
-  reduce(left_join, by = "radio")
-
-write_rds(data_censo_joint, "data/data_censo_radio.RDS")
-
-## collect totals to compute proportions and save
-data_totales <- map2(c("VIVIENDA-INCALCONS.csv", "VIVIENDA-URP.csv", "HOGAR-ALGUNBI.csv", "PERSONA-P02.csv"), 
-                     c("vi_", "vi_urban_", "ho_", "per_"), ~ read_arg_totales(end_url = .x, prefix = .y))
-
-data_totales <- data_totales %>% 
-  reduce(left_join, by = "radio")
-
-write_rds(data_totales, "data/data_censo_totales_radio.RDS")
-
-# -------------------------------------------------------------------------
-
-# C) Create lookups to match census "radios" and electoral "circuitos"
-
-rm(list= ls())
-library(sf)
-source("source/source.R")
-
-# C.1. Generate map lookup to compute stats for circuitos ------------------
-files_census <- list.dirs("data/censo/") # shapes census 
-files_census <- files_census[2:3] 
-files_circuitos <- list.dirs("data/circuitos/")[2:3] # shapes electoral
-
-intersec_list <- map2(files_census, files_circuitos, intersect_polygons) 
-censo_elec_lookup <- reduce(intersec_list, bind_rows) %>% 
-  filter(por_radio > .001) # clean empty por_radio
-
-write_rds(censo_elec_lookup, "data/censo_elec_lookup.RDS")
-
-# C.2. Generate lookup of electoral sections ----------------------------------
-elec_lookup <- map(.x = files_circuitos, 
-                   ~gen_geo_lookup(map1 = "data/paso2015/establecimientos.geojson", 
-                                   map2 = .x)
-                   )  
-
-lookup_elec_indec <- reduce(elec_lookup, bind_rows)
-
-lookup_elec_indec <- lookup_elec_indec %>%
-group_by(id_seccion_elec) %>%
-mutate(count_id_elec = n(), max_count = max(count)) %>%
-filter(count_id_elec == 1 | count_id_elec > 1 & max_count == count) %>%
-  select(starts_with("id")) %>% 
-  filter(id_seccion_elec != "16001") 
-
-write_rds(lookup_elec_indec, "data/elec_indec_lookup.RDS")
-
-# C.3. Create lookup file ---------------------------------------------------
-# only for the circuito PASO 19
-rm(list = ls())
-
-lookup_censo <- read_rds("data/censo_elec_lookup.RDS")
-lookup_elec_indec <- read_rds("data/elec_indec_lookup.RDS")
-elec_paso19 <- read_rds("data/PASO_2019_circuito_wide.RDS") 
-
-lookup_all <- lookup_censo %>% 
-  mutate(id_seccion_indec = str_sub(id_circuito, 1, 5)) %>% 
-  left_join(lookup_elec_indec, by = "id_seccion_indec") %>% 
-  mutate(id_circuito_elec = paste0(id_seccion_elec, str_sub(id_circuito, 6, 11))) %>% 
-  left_join(elec_paso19, by = "id_circuito_elec") %>% 
-  filter(!is.na(paso19_blanco)) %>% 
-  select(-starts_with("paso19"))
-
-write_rds(lookup_all, "data/all_lookup.RDS")
-
-# -------------------------------------------------------------------------
-
-# D) Create final files
-
-rm(list= ls())
-
-# D.1. Load all files and join ----------------------------------------------
-
-censo <- read_rds("data/data_censo_radio.RDS") %>% 
-  rename(id_radio = radio)
-totales <- read_rds("data/data_censo_totales_radio.RDS") %>% 
-  rename(id_radio = radio)
-lkup <- read_rds("data/all_lookup.RDS") %>% 
-  mutate(por_radio = as.double(por_radio))
-elec_paso19 <- read_rds("data/PASO_2019_circuito_wide.RDS")
-elec_paso15 <- read_rds("data/PASO_2015_circuito_wide.RDS")
-elec_pres15 <- read_rds("data/Pres_2015_circuito_wide.RDS")
-elec_pres19 <- read_rds("data/Pres_2019_circuito_wide.RDS")
-
-## join files
-joint <- reduce(list(lkup, censo, totales), left_join, by = "id_radio")
-
-## compute circuito stats
-joint_circuito <- joint %>%
-  ungroup() %>% 
-  mutate_at(vars(starts_with("vi"), starts_with("ho"), starts_with("per"), starts_with("TOTAL")), list(~ .*por_radio)) %>% 
-  select(-por_radio, -id_radio, -id_circuito, -id_seccion_indec, -id_seccion_elec) %>% 
-  group_by(id_circuito_elec) %>% 
-  summarise_all(sum, na.rm = T) %>% 
-  ungroup() %>% 
-  mutate_at(vars(starts_with("vi"), starts_with("ho"), starts_with("per"), starts_with("TOTAL")), round, 0) %>%
-  mutate_at(vars(starts_with("vi_urban_")), list(~ ./vi_urban_TOTAL*100)) %>%
-  mutate_at(vars(starts_with("vi"), -starts_with("vi_urban_")), list(~ ./vi_TOTAL*100)) %>%
-  mutate_at(vars(starts_with("ho")), list(~ ./ho_TOTAL*100)) %>%
-  mutate_at(vars(starts_with("per")), list(~ ./per_TOTAL*100)) %>% 
-  select(-ends_with("TOTAL"))
-
-## join circuito
-joint_circuito <- reduce(list(joint_circuito, elec_paso19, elec_pres19, elec_paso15, elec_pres15), 
-                         left_join, by = "id_circuito_elec")
-  
-joint_circuito <- joint_circuito %>% 
-  mutate_at(vars(starts_with("paso15_cand")), list(~ ./paso15_validos*100)) %>% 
-  mutate_at(vars(starts_with("pres15_cand")), list(~ ./pres15_validos*100)) %>% 
-  mutate_at(vars(starts_with("paso19_cand")), list(~ ./paso19_validos*100)) %>% 
-  mutate_at(vars(starts_with("pres19_cand")), list(~ ./pres19_validos*100))
-# D.2. Clean joint file ---------------------------------------------------
-
-## get file with the census variables selected
-varsel <- read_csv2("data/varnames.csv")
-
-## vars to select
-vars_keep <- varsel %>% 
-  filter(in_file == 1) %>% 
-  pull(vars)
-
-varnames <- varsel %>% 
-  filter(in_file == 1) %>% 
-  pull(new_name)
-
-## select variables and rename
-joint_circuito <- joint_circuito %>% 
-  select(one_of(vars_keep))%>% 
-  rename_all(~ varnames) %>% 
-  mutate(province = case_when(
-    str_sub(id_circuito_elec, 1, 2) == "01" ~ "CABA",
-    str_sub(id_circuito_elec, 1, 2) == "02" ~ "Buenos Aires"
-  )) %>% 
-  select(id_circuito_elec, province, everything()) %>% 
-  drop_na()
-
-## save final file
-write_rds(joint_circuito, "arg_elec_censo_wide.RDS")
-write_csv2(joint_circuito, "arg_elec_censo_wide.csv")
-openxlsx::write.xlsx(joint_circuito, "arg_elec_censo_wide.xlsx")
-
-
